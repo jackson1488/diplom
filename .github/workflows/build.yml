@@ -1,4 +1,4 @@
-name: Build Apps
+name: Build Windows and macOS Apps
 
 on:
   push:
@@ -8,10 +8,12 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
       
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
@@ -22,22 +24,30 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
       
-      - name: Build Windows
+      - name: Build Windows EXE
         run: |
-          pyinstaller --onedir --console --name=DocScanner --hidden-import=numpy --hidden-import=torch --hidden-import=cv2 --hidden-import=easyocr --collect-all numpy --collect-all torch --collect-all cv2 --collect-all easyocr --add-data "templates;templates" --add-data "static;static" app.py
+          pyinstaller --onedir --console --name=DocScanner --hidden-import=numpy --hidden-import=numpy.core._multiarray_umath --hidden-import=torch --hidden-import=cv2 --hidden-import=easyocr --hidden-import=flask --hidden-import=flask_login --hidden-import=flask_sqlalchemy --hidden-import=PIL --collect-all numpy --collect-all torch --collect-all cv2 --collect-all easyocr --add-data "templates;templates" --add-data "static;static" app.py
+      
+      - name: Create ZIP
+        run: |
+          cd dist
+          Compress-Archive -Path DocScanner -DestinationPath DocScanner-Windows.zip
       
       - name: Upload Windows Build
         uses: actions/upload-artifact@v3
         with:
           name: DocScanner-Windows
-          path: dist/DocScanner
+          path: dist/DocScanner-Windows.zip
+          retention-days: 30
 
   build-macos:
     runs-on: macos-latest
+    
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
       
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
@@ -48,12 +58,18 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
       
-      - name: Build macOS
+      - name: Build macOS APP
         run: |
-          pyinstaller --onedir --windowed --name=DocScanner --hidden-import=numpy --hidden-import=torch --hidden-import=cv2 --hidden-import=easyocr --collect-all numpy --collect-all torch --collect-all cv2 --collect-all easyocr --add-data "templates:templates" --add-data "static:static" app.py
+          pyinstaller --onedir --windowed --name=DocScanner --hidden-import=numpy --hidden-import=numpy.core._multiarray_umath --hidden-import=torch --hidden-import=cv2 --hidden-import=easyocr --hidden-import=flask --hidden-import=flask_login --hidden-import=flask_sqlalchemy --hidden-import=PIL --collect-all numpy --collect-all torch --collect-all cv2 --collect-all easyocr --add-data "templates:templates" --add-data "static:static" app.py
+      
+      - name: Create ZIP
+        run: |
+          cd dist
+          zip -r DocScanner-macOS.zip DocScanner.app
       
       - name: Upload macOS Build
         uses: actions/upload-artifact@v3
         with:
           name: DocScanner-macOS
-          path: dist/DocScanner.app
+          path: dist/DocScanner-macOS.zip
+          retention-days: 30
