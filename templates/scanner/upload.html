@@ -1,0 +1,333 @@
+<!-- templates/scanner/upload.html -->
+{% extends "base.html" %}
+
+{% block title %}Загрузка файла - DocScanner{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/camera.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8 col-xl-7">
+            <!-- Заголовок -->
+            <div class="text-center mb-4">
+                <h2 class="fw-bold mb-2">
+                    <i class="bi bi-cloud-upload text-success"></i>
+                    Загрузка документа
+                </h2>
+                <p class="text-muted">Выберите файл с вашего устройства</p>
+            </div>
+
+            <!-- Форма загрузки -->
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <!-- Зона загрузки (Drag & Drop) -->
+                <div class="upload-zone" id="uploadZone">
+                    <input type="file" class="d-none" id="fileInput" name="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.txt,.docx">
+
+                    <div class="upload-content" id="uploadContent">
+                        <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                        <div class="upload-text">Перетащите файл сюда</div>
+                        <div class="upload-hint mb-3">или нажмите для выбора</div>
+                        <button type="button" class="btn btn-primary" id="selectFileBtn">
+                            <i class="bi bi-folder2-open me-2"></i>Выбрать файл
+                        </button>
+                    </div>
+
+                    <!-- Информация о выбранном файле -->
+                    <div class="selected-file-info" id="selectedFileInfo" style="display: none;">
+                        <div class="text-center">
+                            <i class="bi bi-file-earmark-check text-success" style="font-size: 4rem;"></i>
+                            <div class="mt-3">
+                                <h5 id="fileName" class="mb-2"></h5>
+                                <p class="text-muted mb-0">
+                                    <span id="fileSize"></span> •
+                                    <span id="fileType"></span>
+                                </p>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger mt-3" id="removeFileBtn">
+                                <i class="bi bi-trash me-2"></i>Удалить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Дополнительные настройки -->
+                <div class="card mt-4 border-0 shadow-sm" id="optionsCard" style="display: none;">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3">
+                            <i class="bi bi-gear me-2"></i>Настройки документа
+                        </h5>
+
+                        <!-- Название -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">
+                                Название документа
+                            </label>
+                            <input type="text" class="form-control" id="title" name="title"
+                                placeholder="Введите название (или оставьте пустым)">
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                Описание (необязательно)
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="2"
+                                placeholder="Краткое описание документа"></textarea>
+                        </div>
+
+                        <!-- Папка -->
+                        <div class="mb-3">
+                            <label for="folder_id" class="form-label">
+                                Папка
+                            </label>
+                            <select class="form-select" id="folder_id" name="folder_id">
+                                <option value="">Без папки</option>
+                                {% for folder in folders %}
+                                <option value="{{ folder.id }}">{{ folder.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Автоматическое OCR -->
+                        <div class="mb-3">
+                            <div class="card bg-light border-0">
+                                <div class="card-body p-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="auto_ocr" name="auto_ocr"
+                                            value="true" checked>
+                                        <label class="form-check-label" for="auto_ocr">
+                                            <strong>Автоматическое распознавание текста (OCR)</strong>
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Извлечь текст из изображений и PDF для редактирования
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success flex-fill" id="uploadBtn">
+                                <i class="bi bi-cloud-upload me-2"></i>
+                                Загрузить документ
+                            </button>
+                            <a href="{{ url_for('scanner.index') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Поддерживаемые форматы -->
+            <div class="card mt-4 bg-light border-0">
+                <div class="card-body p-3 p-md-4">
+                    <h6 class="mb-3">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Поддерживаемые форматы
+                    </h6>
+                    <div class="row g-2">
+                        <div class="col-6 col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                                <small>PDF документы</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-file-earmark-image text-primary me-2"></i>
+                                <small>JPG, PNG</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-file-earmark-text text-info me-2"></i>
+                                <small>TXT файлы</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-file-earmark-word text-primary me-2"></i>
+                                <small>DOCX документы</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Максимальный размер файла: 50 МБ
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Прогресс загрузки -->
+<div class="spinner-overlay" id="loadingOverlay" style="display: none;">
+    <div class="text-center">
+        <div class="spinner-border spinner-border-custom text-light mb-3" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+        <div class="text-white">
+            <h5>Загрузка файла...</h5>
+            <div class="progress mt-3" style="width: 300px; height: 8px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" id="uploadProgress"
+                    role="progressbar" style="width: 0%"></div>
+            </div>
+            <small class="d-block mt-2" id="uploadStatus">Подготовка...</small>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        'use strict';
+
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const selectFileBtn = document.getElementById('selectFileBtn');
+        const uploadContent = document.getElementById('uploadContent');
+        const selectedFileInfo = document.getElementById('selectedFileInfo');
+        const removeFileBtn = document.getElementById('removeFileBtn');
+        const optionsCard = document.getElementById('optionsCard');
+        const uploadForm = document.getElementById('uploadForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const uploadStatus = document.getElementById('uploadStatus');
+
+        let selectedFile = null;
+
+        // Клик по зоне загрузки
+        uploadZone.addEventListener('click', (e) => {
+            if (e.target !== removeFileBtn && !removeFileBtn.contains(e.target)) {
+                fileInput.click();
+            }
+        });
+
+        // Клик по кнопке выбора
+        selectFileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        // Выбор файла через input
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileSelect(file);
+            }
+        });
+
+        // Drag & Drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleFileSelect(file);
+            }
+        });
+
+        // Обработка выбранного файла
+        function handleFileSelect(file) {
+            // Проверка размера (50 МБ)
+            if (file.size > 50 * 1024 * 1024) {
+                alert('Файл слишком большой. Максимальный размер: 50 МБ');
+                return;
+            }
+
+            // Проверка расширения
+            const allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'txt', 'docx'];
+            const extension = file.name.split('.').pop().toLowerCase();
+            if (!allowedExtensions.includes(extension)) {
+                alert('Недопустимый формат файла. Разрешены: PDF, JPG, PNG, TXT, DOCX');
+                return;
+            }
+
+            selectedFile = file;
+
+            // Обновляем DataTransfer объект для input
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+
+            // Показываем информацию о файле
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            document.getElementById('fileType').textContent = extension.toUpperCase();
+
+            uploadContent.style.display = 'none';
+            selectedFileInfo.style.display = 'block';
+            optionsCard.style.display = 'block';
+
+            // Устанавливаем название по умолчанию
+            if (!document.getElementById('title').value) {
+                const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.'));
+                document.getElementById('title').value = nameWithoutExt;
+            }
+        }
+
+        // Удаление файла
+        removeFileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedFile = null;
+            fileInput.value = '';
+            uploadContent.style.display = 'block';
+            selectedFileInfo.style.display = 'none';
+            optionsCard.style.display = 'none';
+        });
+
+        // Отправка формы
+        uploadForm.addEventListener('submit', (e) => {
+            if (!selectedFile) {
+                e.preventDefault();
+                alert('Выберите файл для загрузки');
+                return;
+            }
+
+            // Показываем прогресс
+            loadingOverlay.style.display = 'flex';
+
+            // Симуляция прогресса (в реальном приложении используйте XMLHttpRequest для отслеживания прогресса)
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progress >= 90) {
+                    clearInterval(progressInterval);
+                    uploadStatus.textContent = 'Обработка файла...';
+                } else {
+                    uploadProgress.style.width = progress + '%';
+                    uploadStatus.textContent = `Загрузка: ${progress}%`;
+                }
+            }, 200);
+        });
+
+        // Форматирование размера файла
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Б';
+            const k = 1024;
+            const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+    })();
+</script>
+{% endblock %}

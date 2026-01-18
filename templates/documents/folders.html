@@ -1,0 +1,238 @@
+<!-- templates/documents/folders.html -->
+{% extends "base.html" %}
+
+{% block title %}Папки - DocScanner{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-2">
+                        <i class="bi bi-folder2-open text-warning"></i>
+                        Мои папки
+                    </h2>
+                    <p class="text-muted mb-0">Организуйте документы по папкам</p>
+                </div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                    data-bs-target="#createFolderModal">
+                    <i class="bi bi-plus-lg me-2"></i>Создать папку
+                </button>
+            </div>
+
+            <!-- Список папок -->
+            {% if folders %}
+            <div class="row g-3 g-md-4">
+                {% for folder in folders %}
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <div class="folder-card">
+                        <a href="{{ url_for('documents.library', folder_id=folder.id) }}"
+                            class="text-decoration-none d-block text-center">
+                            <i class="bi bi-folder-fill folder-icon" data-folder-color="{{ folder.color }}"></i>
+                            <div class="folder-name">{{ folder.name }}</div>
+                            <div class="folder-count">
+                                {{ folder.get_document_count() }} документов
+                            </div>
+                        </a>
+
+                        <!-- Быстрые действия -->
+                        <div class="folder-actions mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                data-bs-target="#editFolderModal{{ folder.id }}" title="Редактировать">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form method="POST" action="{{ url_for('documents.delete_folder', folder_id=folder.id) }}"
+                                class="d-inline"
+                                onsubmit="return confirm('Удалить папку? Документы будут перемещены в корень.');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Модальное окно редактирования папки -->
+                <div class="modal fade" id="editFolderModal{{ folder.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-pencil-square me-2"></i>Редактировать папку
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('documents.update_folder', folder_id=folder.id) }}">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Название</label>
+                                        <input type="text" class="form-control" name="name" value="{{ folder.name }}"
+                                            required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Описание</label>
+                                        <textarea class="form-control" name="description"
+                                            rows="2">{{ folder.description or '' }}</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Цвет</label>
+                                        <input type="color" class="form-control form-control-color" name="color"
+                                            value="{{ folder.color }}">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Отмена
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Пустое состояние -->
+            <div class="empty-state text-center py-5">
+                <i class="bi bi-folder-x" style="font-size: 5rem; color: #dee2e6;"></i>
+                <h4 class="mt-3 text-muted">У вас еще нет папок</h4>
+                <p class="text-muted">Создайте папки для организации документов</p>
+                <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal"
+                    data-bs-target="#createFolderModal">
+                    <i class="bi bi-plus-lg me-2"></i>Создать первую папку
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания папки -->
+<div class="modal fade" id="createFolderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-folder-plus me-2"></i>Создать новую папку
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('documents.create_folder') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="folderName" class="form-label">Название папки</label>
+                        <input type="text" class="form-control" id="folderName" name="name"
+                            placeholder="Введите название" required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="folderDescription" class="form-label">Описание (необязательно)</label>
+                        <textarea class="form-control" id="folderDescription" name="description" rows="2"
+                            placeholder="Краткое описание папки"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="folderColor" class="form-label">Цвет папки</label>
+                        <input type="color" class="form-control form-control-color" id="folderColor" name="color"
+                            value="#3498db">
+                        <small class="text-muted">Выберите цвет для визуального различия</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Отмена
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-2"></i>Создать
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .folder-card {
+        background: white;
+        border: 2px solid #dee2e6;
+        border-radius: 1rem;
+        padding: 1.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .folder-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        border-color: #3498db;
+    }
+
+    .folder-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .folder-name {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .folder-count {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .folder-actions {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .empty-state {
+        background: white;
+        border-radius: 1rem;
+        padding: 3rem 1rem;
+    }
+
+    /* Адаптация для мобильных */
+    @media (max-width: 576px) {
+        .folder-card {
+            padding: 1rem 0.5rem;
+        }
+
+        .folder-icon {
+            font-size: 2.5rem;
+        }
+
+        .folder-name {
+            font-size: 0.875rem;
+        }
+
+        .folder-count {
+            font-size: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Применяем цвета к иконкам папок из data-атрибутов
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.folder-icon[data-folder-color]').forEach(function (icon) {
+            const color = icon.getAttribute('data-folder-color');
+            icon.style.color = color;
+        });
+    });
+</script>
+{% endblock %}

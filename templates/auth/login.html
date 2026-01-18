@@ -1,0 +1,103 @@
+<!-- templates/auth/login.html -->
+{% extends "base.html" %}
+
+{% block title %}Вход - DocScanner{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100 py-4">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            <!-- Карточка входа -->
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <!-- Логотип -->
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="bi bi-book-half text-primary" style="font-size: 4rem;"></i>
+                        </div>
+                        <h2 class="fw-bold mb-2">DocScanner</h2>
+                        <p class="text-muted">Войдите в свой аккаунт</p>
+                    </div>
+
+                    <!-- Форма входа -->
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <!-- Имя пользователя -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="bi bi-person-fill me-1"></i>Имя пользователя
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="username" name="username"
+                                placeholder="Введите имя пользователя" required autofocus>
+                        </div>
+
+                        <!-- Пароль -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="bi bi-lock-fill me-1"></i>Пароль
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control form-control-lg" id="password"
+                                    name="password" placeholder="Введите пароль" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="bi bi-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Запомнить меня -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">
+                                Запомнить меня
+                            </label>
+                        </div>
+
+                        <!-- Кнопка входа -->
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+                            </button>
+                        </div>
+
+                        <!-- Ссылка на регистрацию -->
+                        <div class="text-center">
+                            <p class="mb-0">
+                                Нет аккаунта?
+                                <a href="{{ url_for('auth.register') }}" class="text-decoration-none fw-bold">
+                                    Зарегистрироваться
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Информация для администратора по умолчанию -->
+            <div class="alert alert-info mt-3 text-center" role="alert">
+                <small>
+                    <i class="bi bi-info-circle me-1"></i>
+                    <strong>Админ по умолчанию:</strong> admin / admin123
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Скрипт показа/скрытия пароля -->
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const password = document.getElementById('password');
+        const icon = document.getElementById('toggleIcon');
+
+        if (password.type === 'password') {
+            password.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            password.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    });
+</script>
+{% endblock %}

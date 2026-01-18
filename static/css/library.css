@@ -1,0 +1,78 @@
+/* static/css/library.css */
+/* Дополнительные стили для библиотеки документов */
+
+/* Быстрый доступ к папкам */
+.folder-quick-card {
+    display: block;
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.folder-quick-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-color);
+}
+
+/* Карточки документов - улучшенные */
+.document-card-img-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.document-card-img-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.document-favorite-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 8px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.document-card-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.document-card-actions .btn {
+    flex: 1;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Пустое состояние */
+.empty-state {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 3rem 1rem;
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 576px) {
+    .folder-quick-card i {
+        font-size: 2rem !important;
+    }
+
+    .document-card-img {
+        height: 150px;
+    }
+
+    .document-card-title {
+        font-size: 0.875rem;
+    }
+
+    .document-card-meta {
+        font-size: 0.75rem;
+    }
+}

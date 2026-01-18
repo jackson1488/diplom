@@ -1,0 +1,138 @@
+<!-- templates/auth/register.html -->
+{% extends "base.html" %}
+
+{% block title %}Регистрация - DocScanner{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100 py-4">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            <!-- Карточка регистрации -->
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <!-- Заголовок -->
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="bi bi-person-plus-fill text-primary" style="font-size: 3.5rem;"></i>
+                        </div>
+                        <h2 class="fw-bold mb-2">Регистрация</h2>
+                        <p class="text-muted">Создайте новый аккаунт</p>
+                    </div>
+
+                    <!-- Форма регистрации -->
+                    <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                        <!-- Имя пользователя -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="bi bi-person-fill me-1"></i>Имя пользователя
+                            </label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                placeholder="От 3 до 64 символов" minlength="3" maxlength="64" required autofocus>
+                            <small class="text-muted">Только латинские буквы, цифры, _ и -</small>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="bi bi-envelope-fill me-1"></i>Email
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                placeholder="example@email.com" required>
+                        </div>
+
+                        <!-- Полное имя (опционально) -->
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label">
+                                <i class="bi bi-card-text me-1"></i>Полное имя (необязательно)
+                            </label>
+                            <input type="text" class="form-control" id="full_name" name="full_name"
+                                placeholder="Иван Иванов">
+                        </div>
+
+                        <!-- Пароль -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="bi bi-lock-fill me-1"></i>Пароль
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                placeholder="Минимум 6 символов" minlength="6" required>
+                            <div class="progress mt-2" style="height: 5px;">
+                                <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%">
+                                </div>
+                            </div>
+                            <small class="text-muted" id="passwordHint"></small>
+                        </div>
+
+                        <!-- Подтверждение пароля -->
+                        <div class="mb-3">
+                            <label for="password_confirm" class="form-label">
+                                <i class="bi bi-lock-fill me-1"></i>Подтвердите пароль
+                            </label>
+                            <input type="password" class="form-control" id="password_confirm" name="password_confirm"
+                                placeholder="Повторите пароль" required>
+                        </div>
+
+                        <!-- Кнопка регистрации -->
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-person-check me-2"></i>Зарегистрироваться
+                            </button>
+                        </div>
+
+                        <!-- Ссылка на вход -->
+                        <div class="text-center">
+                            <p class="mb-0">
+                                Уже есть аккаунт?
+                                <a href="{{ url_for('auth.login') }}" class="text-decoration-none fw-bold">
+                                    Войти
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Скрипт валидации -->
+<script>
+    // Индикатор силы пароля
+    document.getElementById('password').addEventListener('input', function () {
+        const password = this.value;
+        const strengthBar = document.getElementById('passwordStrength');
+        const hint = document.getElementById('passwordHint');
+
+        let strength = 0;
+        if (password.length >= 6) strength += 25;
+        if (password.length >= 10) strength += 25;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+        if (/[0-9]/.test(password)) strength += 25;
+
+        strengthBar.style.width = strength + '%';
+
+        if (strength < 50) {
+            strengthBar.className = 'progress-bar bg-danger';
+            hint.textContent = 'Слабый пароль';
+        } else if (strength < 75) {
+            strengthBar.className = 'progress-bar bg-warning';
+            hint.textContent = 'Средний пароль';
+        } else {
+            strengthBar.className = 'progress-bar bg-success';
+            hint.textContent = 'Сильный пароль';
+        }
+    });
+
+    // Проверка совпадения паролей
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('password_confirm').value;
+
+        if (password !== confirm) {
+            e.preventDefault();
+            alert('Пароли не совпадают!');
+            document.getElementById('password_confirm').focus();
+        }
+    });
+</script>
+{% endblock %}

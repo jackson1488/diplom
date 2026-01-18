@@ -1,0 +1,442 @@
+<!-- templates/documents/view.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ document.title }} - DocScanner{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-4" data-document-id="{{ document.id }}">
+    <div class="row">
+        <!-- Основная область просмотра -->
+        <div class="col-12 col-lg-8">
+            <!-- Заголовок и действия -->
+            <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+                <div class="flex-grow-1">
+                    <nav aria-label="breadcrumb" class="mb-2">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ url_for('documents.library') }}">
+                                    <i class="bi bi-house-door"></i> Библиотека
+                                </a>
+                            </li>
+                            {% if document.folder %}
+                            <li class="breadcrumb-item">
+                                <a href="{{ url_for('documents.library', folder_id=document.folder_id) }}">
+                                    {{ document.folder.name }}
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li class="breadcrumb-item active">{{ document.title }}</li>
+                        </ol>
+                    </nav>
+
+                    <h2 class="mb-2">{{ document.title }}</h2>
+
+                    {% if document.description %}
+                    <p class="text-muted">{{ document.description }}</p>
+                    {% endif %}
+
+                    <!-- Метаинформация -->
+                    <div class="d-flex flex-wrap gap-3 text-muted small">
+                        <span>
+                            <i class="bi bi-calendar3 me-1"></i>
+                            {{ format_date(document.created_at, '%d.%m.%Y %H:%M') }}
+                        </span>
+                        <span>
+                            <i class="bi bi-hdd me-1"></i>
+                            {{ format_file_size(document.file_size) }}
+                        </span>
+                        <span>
+                            <i class="bi bi-file-earmark me-1"></i>
+                            {{ document.file_extension.upper() }}
+                        </span>
+                        {% if document.page_count > 1 %}
+                        <span>
+                            <i class="bi bi-file-earmark-text me-1"></i>
+                            {{ document.page_count }} стр.
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Теги -->
+                    {% if document.tags %}
+                    <div class="mt-2">
+                        {% for tag in document.get_tags_list() %}
+                        <span class="badge bg-secondary me-1">
+                            <i class="bi bi-tag-fill me-1"></i>{{ tag }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Кнопки действий -->
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('editor.edit_document', document_id=document.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i>
+                        <span class="d-none d-md-inline ms-1">Редактировать</span>
+                    </a>
+                    <a href="{{ url_for('documents.download_document', document_id=document.id) }}"
+                        class="btn btn-success">
+                        <i class="bi bi-download"></i>
+                        <span class="d-none d-md-inline ms-1">Скачать</span>
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                        data-bs-toggle="dropdown">
+                        <span class="visually-hidden">Еще</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editModal">
+                                <i class="bi bi-pencil-square me-2"></i>Изменить информацию
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#moveModal">
+                                <i class="bi bi-folder me-2"></i>Переместить в папку
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <form method="POST"
+                                action="{{ url_for('documents.delete_document', document_id=document.id) }}"
+                                onsubmit="return confirm('Вы уверены, что хотите удалить этот документ?');">
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-trash me-2"></i>Удалить
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Превью документа -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-0">
+                    {% if document.thumbnail_path %}
+                    <img src="/{{ document.thumbnail_path }}" class="img-fluid w-100" alt="{{ document.title }}"
+                        style="max-height: 600px; object-fit: contain;">
+                    {% else %}
+                    <div class="text-center p-5 bg-light">
+                        <i class="bi bi-file-earmark-text" style="font-size: 5rem; color: #dee2e6;"></i>
+                        <p class="text-muted mt-3">Предпросмотр недоступен</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Распознанный текст -->
+            {% if document.content %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-text me-2"></i>Распознанный текст
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="document-content" style="max-height: 500px; overflow-y: auto;">
+                        {{ document.content|safe }}
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            Символов: {{ document.content|length }}
+                        </small>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard()">
+                            <i class="bi bi-clipboard me-1"></i>Копировать
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% elif document.ocr_status == 'failed' %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Ошибка распознавания текста</strong>
+                <p class="mb-0 mt-2">{{ document.ocr_error or 'Не удалось распознать текст из документа' }}</p>
+            </div>
+            {% elif document.ocr_status == 'processing' %}
+            <div class="alert alert-info">
+                <i class="bi bi-hourglass-split me-2"></i>
+                <strong>Обработка документа...</strong>
+                <p class="mb-0 mt-2">Текст распознается, пожалуйста, подождите.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Боковая панель -->
+        <div class="col-12 col-lg-4 mt-4 mt-lg-0">
+            <!-- Статус OCR -->
+            {% if document.can_ocr() %}
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="bi bi-robot me-2"></i>Распознавание текста (OCR)
+                    </h6>
+
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Статус</small>
+                        {% if document.ocr_status == 'completed' %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i>Завершено
+                        </span>
+                        {% elif document.ocr_status == 'processing' %}
+                        <span class="badge bg-warning">
+                            <i class="bi bi-hourglass-split me-1"></i>Обработка...
+                        </span>
+                        {% elif document.ocr_status == 'failed' %}
+                        <span class="badge bg-danger">
+                            <i class="bi bi-x-circle me-1"></i>Ошибка
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="bi bi-clock me-1"></i>Ожидание
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if document.ocr_status in ['failed', 'pending'] %}
+                    <button class="btn btn-sm btn-primary w-100" onclick="rerunOCR()">
+                        <i class="bi bi-arrow-repeat me-1"></i>Запустить распознавание
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Быстрые действия -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="bi bi-lightning-charge me-2"></i>Быстрые действия
+                    </h6>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('editor.edit_document', document_id=document.id) }}"
+                            class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-pencil me-2"></i>Редактировать
+                        </a>
+
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="toggleFavoriteBtn()">
+                            <i class="bi bi-star{% if document.is_favorite %}-fill{% endif %} me-2"></i>
+                            {% if document.is_favorite %}Убрать из избранного{% else %}В избранное{% endif %}
+                        </button>
+
+                        <a href="{{ url_for('documents.download_document', document_id=document.id) }}"
+                            class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-download me-2"></i>Скачать оригинал
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экспорт -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="bi bi-box-arrow-up me-2"></i>Экспорт
+                    </h6>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('documents.export_document', document_id=document.id, format='pdf') }}"
+                            class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Экспорт в PDF
+                        </a>
+                        <a href="{{ url_for('documents.export_document', document_id=document.id, format='docx') }}"
+                            class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-file-earmark-word me-2"></i>Экспорт в DOCX
+                        </a>
+                        <a href="{{ url_for('documents.export_document', document_id=document.id, format='txt') }}"
+                            class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-file-earmark-text me-2"></i>Экспорт в TXT
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Детальная информация -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="bi bi-info-circle me-2"></i>Детали
+                    </h6>
+
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Оригинальное имя</small>
+                        <div class="small">{{ document.original_filename }}</div>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Создан</small>
+                        <div class="small">{{ format_date(document.created_at) }}</div>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Изменен</small>
+                        <div class="small">{{ format_date(document.updated_at) }}</div>
+                    </div>
+
+                    {% if document.last_viewed %}
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Последний просмотр</small>
+                        <div class="small">{{ format_relative_date(document.last_viewed) }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if document.folder %}
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Папка</small>
+                        <a href="{{ url_for('documents.library', folder_id=document.folder_id) }}"
+                            class="small text-decoration-none">
+                            <i class="bi bi-folder-fill me-1 folder-color-icon"
+                                data-folder-color="{{ document.folder.color }}"></i>
+                            {{ document.folder.name }}
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2"></i>Редактировать информацию
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('documents.update_document', document_id=document.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editTitle" class="form-label">Название</label>
+                        <input type="text" class="form-control" id="editTitle" name="title" value="{{ document.title }}"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Описание</label>
+                        <textarea class="form-control" id="editDescription" name="description"
+                            rows="3">{{ document.description or '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editTags" class="form-label">Теги (через запятую)</label>
+                        <input type="text" class="form-control" id="editTags" name="tags"
+                            value="{{ document.tags or '' }}" placeholder="работа, договор, 2026">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно перемещения -->
+<div class="modal fade" id="moveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-folder me-2"></i>Переместить в папку
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('documents.move_document', document_id=document.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="moveFolder" class="form-label">Выберите папку</label>
+                        <select class="form-select" id="moveFolder" name="folder_id">
+                            <option value="">Без папки</option>
+                            {% for folder in current_user.folders %}
+                            <option value="{{ folder.id }}" {% if document.folder_id==folder.id %}selected{% endif %}>
+                                {{ folder.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Переместить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        // Получаем ID документа из data-атрибута
+        var container = document.querySelector('[data-document-id]');
+        var documentId = container ? container.getAttribute('data-document-id') : null;
+
+        // Копирование текста в буфер обмена
+        window.copyToClipboard = function () {
+            var contentEl = document.querySelector('.document-content');
+            if (contentEl) {
+                var content = contentEl.innerText;
+                navigator.clipboard.writeText(content).then(function () {
+                    alert('Текст скопирован в буфер обмена');
+                });
+            }
+        };
+
+        // Переключение избранного
+        window.toggleFavoriteBtn = function () {
+            if (!documentId) return;
+
+            fetch('/documents/toggle_favorite/' + documentId, {
+                method: 'POST'
+            })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+        };
+
+        // Повторный запуск OCR
+        window.rerunOCR = function () {
+            if (!documentId) return;
+
+            if (!confirm('Запустить распознавание текста? Это может занять некоторое время.')) {
+                return;
+            }
+
+            fetch('/editor/rerun_ocr/' + documentId, {
+                method: 'POST'
+            })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        alert('OCR успешно завершен!');
+                        location.reload();
+                    } else {
+                        alert('Ошибка OCR: ' + data.error);
+                    }
+                });
+        };
+
+        // Применяем цвет папки
+        document.addEventListener('DOMContentLoaded', function () {
+            var folderIcons = document.querySelectorAll('.folder-color-icon[data-folder-color]');
+            folderIcons.forEach(function (icon) {
+                var color = icon.getAttribute('data-folder-color');
+                icon.style.color = color;
+            });
+        });
+    })();
+</script>
+{% endblock %}

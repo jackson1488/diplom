@@ -1,0 +1,184 @@
+/* static/css/camera.css */
+/* 
+ * Стили для камеры и сканера
+ * Адаптированы под все устройства
+ */
+
+/* === КОНТЕЙНЕР КАМЕРЫ === */
+.camera-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    background: #000;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Видео с камеры */
+.camera-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #000;
+}
+
+/* Превью снимка */
+.camera-preview {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Кнопки управления камерой */
+.camera-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--spacing-md);
+    z-index: 10;
+}
+
+.camera-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid white;
+    background: rgba(52, 152, 219, 0.9);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+}
+
+.camera-btn:hover {
+    transform: scale(1.1);
+    background: var(--primary-color);
+}
+
+.camera-btn:active {
+    transform: scale(0.95);
+}
+
+/* Кнопка захвата (большая) */
+.camera-btn-capture {
+    width: 80px;
+    height: 80px;
+    background: #e74c3c;
+}
+
+/* Сетка для выравнивания документа */
+.camera-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.camera-grid-line {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.camera-grid-line-h {
+    width: 100%;
+    height: 1px;
+}
+
+.camera-grid-line-v {
+    width: 1px;
+    height: 100%;
+}
+
+/* === ЗАГРУЗКА ФАЙЛОВ === */
+.upload-zone {
+    border: 3px dashed var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    text-align: center;
+    background: white;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload-zone:hover {
+    border-color: var(--primary-color);
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.upload-zone.dragover {
+    border-color: var(--success-color);
+    background: rgba(39, 174, 96, 0.1);
+}
+
+.upload-icon {
+    font-size: 4rem;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.upload-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    color: var(--dark-text);
+}
+
+.upload-hint {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* === АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ === */
+@media (max-width: 576px) {
+    .camera-controls {
+        bottom: 10px;
+        gap: var(--spacing-sm);
+    }
+
+    .camera-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+
+    .camera-btn-capture {
+        width: 70px;
+        height: 70px;
+    }
+
+    .upload-zone {
+        padding: var(--spacing-lg);
+        min-height: 250px;
+    }
+
+    .upload-icon {
+        font-size: 3rem;
+    }
+
+    .upload-text {
+        font-size: 1rem;
+    }
+}
+
+/* === АДАПТАЦИЯ ДЛЯ ПЛАНШЕТОВ === */
+@media (min-width: 768px) and (max-width: 991px) {
+    .camera-container {
+        max-width: 600px;
+    }
+}

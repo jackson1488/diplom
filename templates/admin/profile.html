@@ -1,0 +1,108 @@
+<!-- templates/auth/profile.html -->
+{% extends "base.html" %}
+
+{% block title %}Профиль - DocScanner{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8 col-xl-7">
+            <h2 class="mb-4">
+                <i class="bi bi-person-circle me-2"></i>
+                Мой профиль
+            </h2>
+
+            <!-- Карточка профиля -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('auth.update_profile') }}">
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <label for="username" class="form-label">Имя пользователя</label>
+                                <input type="text" class="form-control" id="username"
+                                    value="{{ current_user.username }}" disabled>
+                                <small class="text-muted">Имя пользователя нельзя изменить</small>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                    value="{{ current_user.email }}" required>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="full_name" class="form-label">Полное имя</label>
+                                <input type="text" class="form-control" id="full_name" name="full_name"
+                                    value="{{ current_user.full_name or '' }}">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>Сохранить изменения
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Смена пароля -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield-lock me-2"></i>Изменить пароль
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('auth.change_password') }}">
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Текущий пароль</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">Новый пароль</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password"
+                                minlength="6" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Подтвердите новый пароль</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                minlength="6" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-key me-2"></i>Изменить пароль
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Моя статистика
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3 class="text-primary">{{ current_user.documents|length }}</h3>
+                            <small class="text-muted">Документов</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="text-warning">{{ current_user.folders|length }}</h3>
+                            <small class="text-muted">Папок</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="text-success">{{ format_file_size(current_user.get_total_storage()) }}</h3>
+                            <small class="text-muted">Использовано</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,411 @@
+/* static/css/main.css */
+/* 
+ * Основные стили приложения DocScanner
+ * Mobile-First подход: сначала стили для мобильных, затем для больших экранов
+ */
+
+/* === ГЛОБАЛЬНЫЕ СТИЛИ === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Цветовая палитра */
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --light-bg: #f8f9fa;
+    --dark-text: #2c3e50;
+    --border-color: #dee2e6;
+
+    /* Отступы */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+
+    /* Радиусы */
+    --border-radius: 0.5rem;
+    --border-radius-lg: 1rem;
+
+    /* Тени */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', sans-serif;
+    color: var(--dark-text);
+    background-color: var(--light-bg);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* === НАВИГАЦИЯ === */
+.navbar {
+    box-shadow: var(--shadow-sm);
+    z-index: 1000;
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    transition: transform 0.2s;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+}
+
+.nav-link {
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: var(--primary-color);
+}
+
+.nav-link.active {
+    background-color: var(--primary-color);
+    color: white !important;
+}
+
+/* === ОСНОВНОЙ КОНТЕНТ === */
+.main-content {
+    flex: 1;
+    padding: var(--spacing-md);
+    width: 100%;
+}
+
+/* Карточки документов */
+.document-card {
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: white;
+    overflow: hidden;
+    height: 100%;
+}
+
+.document-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.document-card-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.document-card-body {
+    padding: var(--spacing-md);
+}
+
+.document-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.document-card-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* === КНОПКИ === */
+.btn {
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    padding: 0.5rem 1.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #2980b9 100%);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* === ФОРМЫ === */
+.form-control,
+.form-select {
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    color: var(--dark-text);
+}
+
+/* === МОДАЛЬНЫЕ ОКНА === */
+.modal-content {
+    border-radius: var(--border-radius-lg);
+    border: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    border-bottom: 2px solid var(--border-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #2980b9 100%);
+    color: white;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* === ПАПКИ === */
+.folder-card {
+    border-radius: var(--border-radius-lg);
+    border: 2px solid var(--border-color);
+    padding: var(--spacing-lg);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.folder-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.folder-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.folder-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+}
+
+.folder-count {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* === ALERTS === */
+.alert {
+    border-radius: var(--border-radius-lg);
+    border-left: 4px solid;
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+/* === ФУТЕР === */
+.footer {
+    background-color: white;
+    margin-top: auto;
+}
+
+/* === ЗАГРУЗЧИК === */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.spinner-border-custom {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3rem;
+}
+
+/* === АДАПТАЦИЯ ДЛЯ ПЛАНШЕТОВ (768px и выше) === */
+@media (min-width: 768px) {
+    .main-content {
+        padding: var(--spacing-lg);
+    }
+
+    .document-card-img {
+        height: 250px;
+    }
+
+    .document-card-title {
+        font-size: 1.125rem;
+    }
+
+    .btn {
+        padding: 0.625rem 1.75rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.5rem;
+    }
+}
+
+/* === АДАПТАЦИЯ ДЛЯ ДЕСКТОПОВ (992px и выше) === */
+@media (min-width: 992px) {
+    .main-content {
+        padding: var(--spacing-xl);
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .document-card-img {
+        height: 300px;
+    }
+
+    .document-card:hover {
+        transform: translateY(-8px);
+    }
+
+    /* Сетка для больших экранов */
+    .document-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--spacing-lg);
+    }
+}
+
+/* === АДАПТАЦИЯ ДЛЯ БОЛЬШИХ ЭКРАНОВ (1400px и выше) === */
+@media (min-width: 1400px) {
+    .main-content {
+        max-width: 1600px;
+    }
+
+    .document-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: var(--spacing-xl);
+    }
+}
+
+/* === АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ (до 576px) === */
+@media (max-width: 576px) {
+    .main-content {
+        padding: var(--spacing-sm);
+    }
+
+    .document-card-img {
+        height: 180px;
+    }
+
+    .document-card-body {
+        padding: var(--spacing-sm);
+    }
+
+    .btn {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .btn-icon {
+        width: 45px;
+        height: 45px;
+    }
+
+    /* Упрощенная навигация для мобильных */
+    .nav-link {
+        padding: var(--spacing-md);
+        margin: var(--spacing-xs) 0;
+    }
+
+    /* Модальные окна на весь экран для мобильных */
+    .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+        height: 100%;
+    }
+
+    .modal-content {
+        height: 100%;
+        border-radius: 0;
+    }
+}
+
+/* === АНИМАЦИИ === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* === УТИЛИТЫ === */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}

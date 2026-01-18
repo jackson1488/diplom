@@ -1,0 +1,431 @@
+<!-- templates/editor/edit.html -->
+{% extends "base.html" %}
+
+{% block title %}Редактирование - {{ document.title }}{% endblock %}
+
+{% block extra_css %}
+<!-- Quill Editor CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<style>
+    body {
+        overflow: hidden;
+    }
+    
+    .editor-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding-top: 56px;
+    }
+    
+    .editor-toolbar {
+        background: white;
+        border-bottom: 2px solid #dee2e6;
+        padding: 0.75rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .editor-main {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+    }
+    
+    .editor-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: white;
+    }
+    
+    #editor {
+        flex: 1;
+        overflow-y: auto;
+    }
+    
+    .editor-sidebar {
+        width: 300px;
+        background: #f8f9fa;
+        border-left: 1px solid #dee2e6;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+    
+    .ql-container {
+        font-size: 16px;
+        font-family: 'Georgia', serif;
+        line-height: 1.8;
+    }
+    
+    .ql-editor {
+        padding: 2rem;
+        min-height: 100%;
+    }
+    
+    .save-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+    
+    .save-status.saved {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .save-status.saving {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .save-status.error {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    @media (max-width: 768px) {
+        .editor-sidebar {
+            display: none;
+        }
+        
+        .editor-toolbar {
+            padding: 0.5rem;
+        }
+        
+        .ql-editor {
+            padding: 1rem;
+        }
+        
+        .editor-toolbar-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-container" data-document-id="{{ document.id }}">
+    <!-- Панель инструментов -->
+    <div class="editor-toolbar">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Кнопка назад -->
+            <a href="{{ url_for('documents.view_document', document_id=document.id) }}" 
+               class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i>
+                <span class="d-none d-md-inline ms-1">Назад</span>
+            </a>
+            
+            <!-- Название документа -->
+            <div class="d-none d-md-block">
+                <strong>{{ document.title }}</strong>
+            </div>
+            
+            <!-- Статус сохранения -->
+            <div class="save-status saved" id="saveStatus">
+                <i class="bi bi-check-circle"></i>
+                <span>Сохранено</span>
+            </div>
+        </div>
+        
+        <div class="d-flex align-items-center gap-2 editor-toolbar-actions">
+            <!-- Повторить OCR -->
+            {% if document.can_ocr() %}
+            <button type="button" class="btn btn-outline-info btn-sm" id="rerunOCRBtn">
+                <i class="bi bi-arrow-repeat"></i>
+                <span class="d-none d-md-inline ms-1">Повторить OCR</span>
+            </button>
+            {% endif %}
+            
+            <!-- Сохранить -->
+            <button type="button" class="btn btn-primary btn-sm" id="saveBtn">
+                <i class="bi bi-save"></i>
+                <span class="d-none d-md-inline ms-1">Сохранить</span>
+            </button>
+            
+            <!-- Экспорт -->
+            <div class="btn-group">
+                <button type="button" class="btn btn-success btn-sm dropdown-toggle" 
+                        data-bs-toggle="dropdown">
+                    <i class="bi bi-download"></i>
+                    <span class="d-none d-md-inline ms-1">Экспорт</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="{{ url_for('documents.export_document', document_id=document.id, format='pdf') }}">
+                            <i class="bi bi-file-earmark-pdf text-danger me-2"></i>PDF
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ url_for('documents.export_document', document_id=document.id, format='docx') }}">
+                            <i class="bi bi-file-earmark-word text-primary me-2"></i>DOCX
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ url_for('documents.export_document', document_id=document.id, format='txt') }}">
+                            <i class="bi bi-file-earmark-text text-secondary me-2"></i>TXT
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Основная область редактирования -->
+    <div class="editor-main">
+        <div class="editor-content">
+            <!-- Редактор Quill -->
+            <div id="editor">{{ document.content or '' }}</div>
+        </div>
+        
+        <!-- Боковая панель (только на десктопе) -->
+        <div class="editor-sidebar d-none d-lg-block">
+            <h6 class="mb-3">
+                <i class="bi bi-info-circle me-2"></i>Информация
+            </h6>
+            
+            <div class="mb-3">
+                <small class="text-muted d-block">Создан</small>
+                <div>{{ format_date(document.created_at) }}</div>
+            </div>
+            
+            <div class="mb-3">
+                <small class="text-muted d-block">Изменен</small>
+                <div>{{ format_date(document.updated_at) }}</div>
+            </div>
+            
+            <div class="mb-3">
+                <small class="text-muted d-block">Размер</small>
+                <div>{{ format_file_size(document.file_size) }}</div>
+            </div>
+            
+            {% if document.ocr_status %}
+            <div class="mb-3">
+                <small class="text-muted d-block">Статус OCR</small>
+                <div>
+                    {% if document.ocr_status == 'completed' %}
+                    <span class="badge bg-success">Завершено</span>
+                    {% elif document.ocr_status == 'processing' %}
+                    <span class="badge bg-warning">Обработка...</span>
+                    {% elif document.ocr_status == 'failed' %}
+                    <span class="badge bg-danger">Ошибка</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Ожидание</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <hr>
+            
+            <h6 class="mb-3">
+                <i class="bi bi-pencil-square me-2"></i>Статистика
+            </h6>
+            
+            <div class="mb-2">
+                <small class="text-muted">Символов:</small>
+                <strong id="charCount">0</strong>
+            </div>
+            
+            <div class="mb-2">
+                <small class="text-muted">Слов:</small>
+                <strong id="wordCount">0</strong>
+            </div>
+            
+            <div class="mb-2">
+                <small class="text-muted">Строк:</small>
+                <strong id="lineCount">0</strong>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Quill Editor JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+(function() {
+    'use strict';
+    
+    // Получаем ID документа из data-атрибута
+    var container = document.querySelector('[data-document-id]');
+    var documentId = container ? container.getAttribute('data-document-id') : null;
+    
+    if (!documentId) {
+        console.error('Document ID not found');
+        return;
+    }
+    
+    var saveBtn = document.getElementById('saveBtn');
+    var saveStatus = document.getElementById('saveStatus');
+    var rerunOCRBtn = document.getElementById('rerunOCRBtn');
+    
+    // Инициализация Quill редактора
+    var quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'align': [] }],
+                ['blockquote', 'code-block'],
+                [{ 'color': [] }, { 'background': [] }],
+                ['link'],
+                ['clean']
+            ]
+        },
+        placeholder: 'Начните вводить текст или вставьте содержимое...'
+    });
+    
+    // Автосохранение каждые 30 секунд
+    var autoSaveTimer = null;
+    var hasUnsavedChanges = false;
+    
+    quill.on('text-change', function() {
+        hasUnsavedChanges = true;
+        updateStatus('saving', 'Есть изменения...');
+        updateStats();
+        
+        // Сброс таймера автосохранения
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(autoSave, 30000);
+    });
+    
+    // Ручное сохранение
+    saveBtn.addEventListener('click', function() {
+        saveDocument(false);
+    });
+    
+    // Автосохранение
+    function autoSave() {
+        if (hasUnsavedChanges) {
+            saveDocument(true);
+        }
+    }
+    
+    // Сохранение документа
+    function saveDocument(isAuto) {
+        var content = quill.root.innerHTML;
+        
+        updateStatus('saving', 'Сохранение...');
+        
+        fetch('/editor/save/' + documentId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: content })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                hasUnsavedChanges = false;
+                updateStatus('saved', 'Сохранено');
+            } else {
+                updateStatus('error', 'Ошибка сохранения');
+                console.error('Ошибка:', data.error);
+            }
+        })
+        .catch(function(error) {
+            updateStatus('error', 'Ошибка сохранения');
+            console.error('Ошибка:', error);
+        });
+    }
+    
+    // Обновление статуса
+    function updateStatus(status, text) {
+        saveStatus.className = 'save-status ' + status;
+        saveStatus.querySelector('span').textContent = text;
+        
+        var icon = saveStatus.querySelector('i');
+        if (status === 'saved') {
+            icon.className = 'bi bi-check-circle';
+        } else if (status === 'saving') {
+            icon.className = 'bi bi-arrow-repeat';
+        } else if (status === 'error') {
+            icon.className = 'bi bi-exclamation-circle';
+        }
+    }
+    
+    // Обновление статистики
+    function updateStats() {
+        var text = quill.getText();
+        var charCount = text.length - 1;
+        var wordCount = text.trim().split(/\s+/).filter(function(w) { return w.length > 0; }).length;
+        var lineCount = text.split('\n').length - 1;
+        
+        var charCountEl = document.getElementById('charCount');
+        var wordCountEl = document.getElementById('wordCount');
+        var lineCountEl = document.getElementById('lineCount');
+        
+        if (charCountEl) charCountEl.textContent = charCount;
+        if (wordCountEl) wordCountEl.textContent = wordCount;
+        if (lineCountEl) lineCountEl.textContent = lineCount;
+    }
+    
+    // Повторный запуск OCR
+    if (rerunOCRBtn) {
+        rerunOCRBtn.addEventListener('click', function() {
+            if (!confirm('Заменить текущее содержимое результатами OCR?')) {
+                return;
+            }
+            
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Обработка...';
+            
+            var btn = this;
+            
+            fetch('/editor/rerun_ocr/' + documentId, {
+                method: 'POST'
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    quill.setText(data.text);
+                    alert('OCR успешно выполнен!');
+                } else {
+                    alert('Ошибка OCR: ' + data.error);
+                }
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat"></i><span class="d-none d-md-inline ms-1">Повторить OCR</span>';
+            })
+            .catch(function(error) {
+                alert('Ошибка выполнения OCR');
+                console.error(error);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat"></i><span class="d-none d-md-inline ms-1">Повторить OCR</span>';
+            });
+        });
+    }
+    
+    // Сохранение перед выходом
+    window.addEventListener('beforeunload', function(e) {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+    
+    // Горячие клавиши
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            saveDocument(false);
+        }
+    });
+    
+    // Инициализация статистики
+    updateStats();
+    
+})();
+</script>
+{% endblock %}

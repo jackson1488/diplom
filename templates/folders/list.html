@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Папки{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-folder"></i> Мои папки</h2>
+        <a href="{{ url_for('folders.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Создать папку
+        </a>
+    </div>
+
+    {% if folders %}
+    <div class="row">
+        {% for item in folders %}
+        {% set folder_color = item.folder.color %}
+        {% set folder_id = item.folder.id %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-folder-fill folder-icon-{{ loop.index }}" data-color="{{ folder_color }}"></i>
+                        {{ item.folder.name }}
+                    </h5>
+                    <p class="card-text text-muted">
+                        {{ item.folder.description or 'Нет описания' }}
+                    </p>
+                    <p class="text-muted small">
+                        Документов: {{ item.doc_count }}
+                    </p>
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('folders.view', folder_id=folder_id) }}"
+                            class="btn btn-sm btn-outline-primary">
+                            Открыть
+                        </a>
+                        <a href="{{ url_for('folders.edit', folder_id=folder_id) }}"
+                            class="btn btn-sm btn-outline-secondary">
+                            Изменить
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger delete-folder-btn"
+                            data-folder-id="{{ folder_id }}">
+                            Удалить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        У вас пока нет папок. <a href="{{ url_for('folders.create') }}">Создать первую папку?</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Устанавливаем цвета папок
+    document.addEventListener('DOMContentLoaded', function () {
+        var icons = document.querySelectorAll('[data-color]');
+        icons.forEach(function (icon) {
+            icon.style.color = icon.getAttribute('data-color');
+        });
+
+        // Обработчики удаления
+        var deleteButtons = document.querySelectorAll('.delete-folder-btn');
+        deleteButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var folderId = this.getAttribute('data-folder-id');
+                deleteFolder(folderId);
+            });
+        });
+    });
+
+    function deleteFolder(folderId) {
+        if (!confirm('Удалить папку? Документы в ней не будут удалены.')) {
+            return;
+        }
+
+        fetch('/folders/delete/' + folderId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Не удалось удалить папку'));
+                }
+            })
+            .catch(function (error) {
+                console.error('Error:', error);
+                alert('Ошибка соединения');
+            });
+    }
+</script>
+{% endblock %}

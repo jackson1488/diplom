@@ -1,0 +1,35 @@
+<!-- templates/errors/500.html -->
+{% extends "base.html" %}
+
+{% block title %}500 - Ошибка сервера{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center" style="min-height: 70vh;">
+        <div class="col-md-6 text-center d-flex flex-column justify-content-center">
+            <div class="error-page">
+                <h1 class="display-1 fw-bold text-danger">500</h1>
+                <h2 class="mb-4">Внутренняя ошибка сервера</h2>
+                <p class="text-muted mb-4">
+                    Произошла ошибка при обработке вашего запроса.
+                    Мы уже работаем над исправлением.
+                </p>
+                <div class="d-flex gap-3 justify-content-center">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('documents.library') }}" class="btn btn-primary">
+                        <i class="bi bi-house-door me-2"></i>В библиотеку
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Войти
+                    </a>
+                    {% endif %}
+                    <a href="javascript:location.reload()" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-repeat me-2"></i>Обновить
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

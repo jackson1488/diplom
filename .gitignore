@@ -1,0 +1,54 @@
+# Python виртуальное окружение
+venv/
+env/
+ENV/
+
+# Python кэш
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Компиляция
+*.exe
+*.app
+*.dmg
+dist/
+build/
+output/
+*.spec
+
+# База данных
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Загруженные файлы
+uploads/
+temp/
+thumbnails/
+
+# Логи
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Flask
+instance/
+.webassets-cache
+.env
+
+# Зависимости (не нужны в репозитории)
+*.egg-info/
+*.egg
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
